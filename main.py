@@ -1,18 +1,18 @@
 import telebot
-import sqlite3
+import sqlite3 # ДЛЯ РАБОТЫ С БД
 
-# ЧТОБЫ БОТ МОГ ПРИСЫЛАТЬ СООБЩЕНИЯ САМОСТОЯТЕЛЬНО ПО РАСПИСАНИЮ
+# СООБЩЕНИЯ ПО РАСПИСАНИЮ
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 import time
 
-# ЧТОБЫ МОЖНО БЫЛО ВЫБРАТЬ СЛУЧАЙНУЮ ТЕМУ ИЗ ИМЕЮЩИХСЯ
+# ВЫБОР СЛУЧАЙНОЙ ТЕМЫ
 import random
 
 from config import TOKEN
 bot = telebot.TeleBot(TOKEN)
 
-# СЛОВАРЬ ИСКЛЮЧЕНИЙ ЧТОБЫ ПРИ НАЖАТИИ КНОПКИНЕ ПРОИЗОШЛА ОШИБКА
+# СЛОВАРЬ ИСКЛЮЧЕНИЙ, ЧТОБЫ ПРИ НАЖАТИИ КНОПКИ НЕ ПРОИЗОШЛА ОШИБКА
 exception = {
     '0' : 'Перейти в главное меню Бота',
     '1' : 'Перейти в меню изменения тем',
@@ -34,7 +34,7 @@ exception = {
     '17' : 'Сохранить работу'
 }
 
-# КЛАВИАТУРЫ. ДЛЯ УДОБСТВА, ЧТОБЫ ПОСЛЕ ОПРЕДЕЛЕННОГО ДЕЙСТВИЯ ОТКРЫВАЛАСЬ НУЖНАЯ КЛАВИАТУРА
+# КЛАВИАТУРЫ
 main_keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
 btn_start = telebot.types.KeyboardButton(text='Перейти в меню уведомлений')
 btn_create_theme = telebot.types.KeyboardButton(text='Создать новую тему')
@@ -49,14 +49,10 @@ main_keyboard.add(btn_show_photo, btn_change)
 change_time_keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
 change_keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True) # при измнении темы
 
-# УСТАНОВКА РАСПИСАНИЯ И СОЗДАНИЕ ID ДЛЯ УПАРВЛЕНИЯ ИМЕЮЩИМИСЯ ЗАДАЧАМИ ДЛЯ SCHEDULER
+# РАСПИСАНИЕ
 scheduler = BackgroundScheduler()
-
-# ЗАПУСК РАСПИСАНИЯ
 scheduler.start()
 
-
-# НАЧАЛО РАБОТЫ
 @bot.message_handler(commands=['start'])
 def welcome(msg):
     # ПО chat_id ПРОВЕРЯЕМ, СУЩЕСТВУЕТ ЛИ УЖЕ ЗАПИСЬ В БД ДЛЯ ЭТОГО ПОЛЬЗОВАТЕЛЯ
@@ -127,7 +123,7 @@ def notification_menu(msg): # Перейти в меню уведомлений
                                       f'Позднее уведомление в {end} (МСК): Ты сможешь показать свои результаты, я сохраню их.\n\n'
                                       'На данный момент изменить можно только часы, минуты корректировать нельзя.', reply_markup=keyboard)
 
-    # ВЫВОДИМ ПРАВИЛЬНОЕ ВРЕМЯ (проблемы возникают из-за того, что время на сервере стоит по UTC, а нам надо по МСК (для удобства))
+    # ВЫВОДИМ ПРАВИЛЬНОЕ ВРЕМЯ (проблемы возникают из-за того, что время на сервере стоит по UTC, а нам надо по МСКа)
     if start_time <= 23 and end_time <= 23:
         notification_msg_pattern(msg, start_time, end_time)
 
@@ -592,14 +588,6 @@ def name_check(msg):
 
 # ФУНКЦИЯ ДЛЯ ПРОВЕРКИ СООБЩЕНИЯ, ПРИСЫЛАЕМОГО ПОЛЬЗОВАТЕЛЕМ ПРИ УСТАНОВКЕ РАСПИСАНИЯ
 def time_error(msg):
-    # try:
-    #     if int(msg.text) >= 0 and int(msg.text) <= 23:
-    #         return int(msg.text)
-    #     else:
-    #         bot.send_message(msg.chat.id, 'Время, которое ты указал, некорректно.\n'
-    #                                       'Оно должно быть в пределах от 0 до 23.', reply_markup=change_time_keyboard)
-    # except Exception: # ПОЧЕМУ-ТО КАЖДЫЙ РАЗ СРАБАТЫВАЕТ ИСКЛЮЧЕНИЕ, НО ПРИ ЭТОМ ВСЕ РАБОТАЕТ КОРРЕКТНО
-    #     return int(msg.text)
     if int(msg.text) >= 0 and int(msg.text) <= 23:
         return int(msg.text)
     else:
